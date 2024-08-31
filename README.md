@@ -16,7 +16,7 @@
 - **CIFAR-10 실험**: 먼저 CIFAR-10 데이터셋을 사용하여 실험을 진행하였습니다. CIFAR-10 데이터셋은 10개의 클래스로 구성된 작은 이미지 데이터셋으로, 모델의 초기 성능을 평가하고, Forgetting Score 기반의 데이터 셋 최적화 전략을 테스트하는 데 적합합니다. CIFAR-10 데이터에 대해 이미지를 일관된 크기로 조정하고, 데이터를 정규화하여 모델 입력에 적합한 형식으로 변환합니다.
 - **모델 선택 및 학습**: ResNet18 모델을 선택하여 학습을 진행합니다. 초기 학습 후, Forgetting Score를 계산하여 데이터셋에서 성능에 부정적인 영향을 미치는 예제들을 식별합니다.
 - **데이터셋 최적화**: Forgetting Score를 기준으로 일부 데이터를 제거하거나 유지하여 데이터셋을 최적화합니다. 이후, 최적화된 데이터셋을 사용하여 모델을 재학습하고, 성능을 평가합니다.
-- **모델 평가**: 최종 모델의 성능은 정확도(Accuracy), 혼동 행렬(Confusion Matrix) 등 다양한 평가 지표를 통해 측정되며, 최적화 이전과 이후의 성능을 비교 분석합니다.
+- **모델 평가**: 최종 모델의 성능은 정확도(Accuracy)로 측정되며, 최적화 이전과 이후의 성능을 비교 분석합니다.
 
 ### **4. 사용 기술 및 도구**
 
@@ -71,8 +71,6 @@
         root='data_path', train=False, transform=test_transform, download=True)
     ```
     
-        **설명**
-    
     - **데이터 전처리**: 학습 데이터를 위한 증강 기법으로 `RandomCrop(32, padding=4)`과 `RandomHorizontalFlip()`을 사용합니다. 모든 데이터는 `ToTensor`로 변환되며, 정규화를 적용합니다.
     - **데이터 로드**: CIFAR-10 데이터셋을 학습용과 테스트용으로 로드하며, 각 데이터셋에 지정된 전처리를 적용합니다.
     
@@ -95,8 +93,6 @@
             model_optimizer.step()
     ```
     
-        **설명**
-    
     - **모델 학습**: 학습 데이터를 배치로 나누어 모델에 입력하고, 예측값과 실제값의 차이를 계산하여 손실을 구합니다. 그 후, 손실을 역전파하여 모델의 가중치를 업데이트합니다.
     
     **<모델 테스트 (Evaluation Loop)>**
@@ -114,8 +110,6 @@
                 outputs = model(inputs)
                 loss = criterion(outputs, targets).mean()
     ```
-    
-        **설명**
     
     - **모델 평가**: 테스트 데이터셋을 사용해 학습된 모델의 성능을 평가합니다. 이 과정에서 손실 및 정확도를 계산하여 모델 성능을 확인합니다.
     
@@ -136,8 +130,6 @@
     with open(fname + "__stats_dict.pkl", "wb") as f:
         pickle.dump(example_stats, f)
     ```
-    
-        **설명**
     
     - 각 학습 예제에 대해 손실, 정확도, 마진 정보를 기록합니다.
     
@@ -181,8 +173,6 @@
         return presentations_needed_to_learn, unlearned_per_presentation, margins_per_presentation, first_learned
     ```
     
-        **설명**
-    
     - **기능**: 각 데이터 포인트가 학습 중 얼마나 자주 잊혀졌는지(Forgetting Score), 학습에 필요한 프레젠테이션 수, 첫 번째로 학습된 시점 등을 계산합니다.
     - **활용**: 이 정보를 바탕으로 데이터 포인트를 정렬하고, 중요하지 않은 데이터 포인트를 식별하는 데 사용됩니다.
     
@@ -209,8 +199,6 @@
         return np.array(example_original_order)[np.argsort(example_stats)], np.sort(example_stats)
     ```
     
-        **설명**
-    
     - **기능**: 각 데이터 포인트의 Forgetting Score를 기준으로 정렬하여, 학습에 덜 중요한 데이터를 선별합니다.
     - **활용**: 정렬된 데이터는 이후의 학습에서 중요하지 않은 데이터를 제거하거나, 학습 데이터의 품질을 개선하는 데 사용됩니다.
     
@@ -228,7 +216,8 @@
         
          다음은 제거된 데이터 비율에 따른 모델 성능(정확도)을 비교한 결과입니다.
         
-        ![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/622a00dc-4c18-4bc1-993f-ce2c31420973/3ad5f592-62b4-465b-a5f8-83adac04f10d/image.png)
+        ![image](https://github.com/user-attachments/assets/8866c93a-66b1-45a8-9ac3-441f1a56a6a4)
+
         
         - **세로축**: 모델의 정확도
         - **가로축**: 제거된 데이터 비율 (%)
@@ -245,12 +234,13 @@
         
          추가적으로, 각 클래스별로 Forgetting Score가 높은 이미지와 낮은 이미지의 특성을 분석했습니다. Forgetting Score가 낮은 이미지들은 일반적으로 각 클래스의 특징이 명확하게 드러나며, 분류가 용이한 이미지들이었습니다. 반면, Forgetting Score가 높은 이미지들은 클래스의 일부만을 담거나, 모호한 특성을 가지고 있어 모델이 혼동을 일으킬 가능성이 높은 이미지들이었습니다. 이 차이는 클래스별로 더욱 명확히 드러났습니다
         
-        ![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/622a00dc-4c18-4bc1-993f-ce2c31420973/42df395d-89ac-4600-a3ac-ca801c5e27ca/image.png)
-        
+       
+        ![image_cif1](https://github.com/user-attachments/assets/d28f8719-e9a7-427e-9170-d22d6fd67bc6)
+
         ---
         
-        ![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/622a00dc-4c18-4bc1-993f-ce2c31420973/4877638e-260b-4d04-b474-93c0f0e83505/image.png)
-        
+        ![image_cif2](https://github.com/user-attachments/assets/f1659034-5a19-4e85-b488-58de399405b0)
+
 
 ### 2. 도로 표지판 실험
 
@@ -293,8 +283,6 @@
     ])
     ```
     
-        **설명**
-    
     - 이 부분은 이미지 데이터를 전처리하고, 학습 및 테스트 시 사용할 이미지 Augmentation을 정의합니다. 학습 데이터는 다양한 크기와 방향으로 변환되어 모델이 다양한 패턴에 대해 학습할 수 있도록 합니다.
     - 도로 표지판 이미지의 크기를 256으로 조정한 뒤, 무작위로 224x224 크기로 크롭하고, 좌우 반전을 통해 학습 데이터의 다양성을 높입니다. 테스트 데이터는 중앙 크롭만 수행하여 일관된 입력을 제공합니다.
     
@@ -331,8 +319,6 @@
     )
     ```
     
-        **설명**
-    
     - 학습 및 테스트 데이터셋을 PyTorch의 `ImageFolder` 클래스를 사용하여 로드하고, 이를 DataLoader를 통해 모델에 전달할 준비를 합니다.
     - `ImageFolder`를 사용하여 이미지와 라벨을 로드하며, DataLoader는 데이터 배치를 처리하고, 멀티 프로세싱을 통해 데이터 로딩 속도를 최적화합니다. 학습 데이터는 셔플되어 모델에 입력되며, 테스트 데이터는 순차적으로 입력됩니다.
     
@@ -343,8 +329,9 @@
     - 실험 결과는 아래 그림과 같습니다. 세로축은 정확도를, 가로축은 제거된 데이터 비율을 나타냅니다. 파란색 실선은 Forgetting Score가 낮은 데이터부터 제거했을 때의 결과를, 주황색 점선은 랜덤으로 데이터를 제거했을 때의 결과를 나타냅니다. 
      제거된 데이터의 비율이 증가할수록 랜덤으로 데이터를 제거했을 때의 성능은 크게 감소하는 경향을 보였지만, Forgetting Score를 기반으로 데이터를 제거했을 때는 성능이 비교적 안정적으로 유지되었습니다.
         
-        ![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/622a00dc-4c18-4bc1-993f-ce2c31420973/ae7a3542-9587-43e7-bc82-310bb257f8b3/image.png)
-        
+       
+        ![result_2](https://github.com/user-attachments/assets/303fb053-c4d9-4483-a955-19aa9cbbcf3c)
+
     
     - 결과 분석
         
@@ -352,8 +339,8 @@
         
          반면, 학습이 어려웠던 이미지에서는 특징이 흐릿하거나, 배경과의 대비가 낮아 인식이 어려운 경우가 많았습니다. **Crosswalk** 라벨의 경우 색이 바래져 도로 표지판의 특징이 잘 드러나지 않았고, **Stop** 라벨은 텍스트가 흐릿하고 배경과의 대비가 낮아 인식이 어려웠습니다. **Speed Limit** 라벨은 숫자와 테두리 간의 구분이 명확하지 않았고, **Traffic Light** 라벨은 신호등의 형태가 흐릿해 색상 구분이 어려웠습니다.
         
-        ![result.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/622a00dc-4c18-4bc1-993f-ce2c31420973/a4410ee3-79ad-4184-b8b4-ee98c0de7e56/result.png)
-        
+        ![sign](https://github.com/user-attachments/assets/c02e7953-749d-4037-a42c-47183710df83)
+
     
     - CIFAR10 실험과의 비교
         
